@@ -333,6 +333,89 @@
             display: none;
         }
 
+        /* About Page */
+        .about-card {
+            background: linear-gradient(135deg, var(--primary), #60A5FA);
+            color: white;
+            padding: 32px 24px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .about-logo {
+            font-size: 64px;
+            margin-bottom: 12px;
+        }
+
+        .about-title {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .about-version {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .changelog-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .changelog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .changelog-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .changelog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .changelog-version {
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .changelog-date {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .changelog-changes {
+            font-size: 14px;
+            color: var(--gray-700);
+            line-height: 1.8;
+        }
+
+        .changelog-changes li {
+            margin-left: 16px;
+            margin-bottom: 4px;
+        }
+
+        /* Menu card for About */
+        .menu-card-about {
+            grid-column: span 2;
+        }
+
         .sample-hint {
             font-size: 12px;
             color: var(--gray-500);
@@ -869,6 +952,11 @@
                     <div class="menu-title">添加错题</div>
                     <div class="menu-desc">手动录入错题</div>
                 </div>
+                <div class="menu-card menu-card-about" data-action="about">
+                    <div class="menu-icon">ℹ️</div>
+                    <div class="menu-title">关于APP</div>
+                    <div class="menu-desc">查看版本信息和更新历史</div>
+                </div>
             </div>
         </div>
 
@@ -1047,9 +1135,60 @@
                 <span class="nav-label">上传</span>
             </button>
         </nav>
+
+        <!-- About Page -->
+        <div class="page" id="page-about">
+            <div class="header">
+                <h1>ℹ️ 关于</h1>
+                <button class="header-btn" data-back="home">返回</button>
+            </div>
+
+            <div class="about-card">
+                <div class="about-logo">📚</div>
+                <h2 class="about-title">我的错题本</h2>
+                <div class="about-version">当前版本：<strong id="current-version">v1.0.0</strong></div>
+            </div>
+
+            <div class="changelog-title">📋 版本历史</div>
+            <div class="changelog-list" id="changelog-list">
+                <!-- 版本历史将通过JS动态渲染 -->
+            </div>
+        </div>
     </div>
 
     <script>
+        // ========== 版本信息 ==========
+        const APP_VERSION = '1.0.3';
+        const VERSION_HISTORY = [
+            {
+                version: '1.0.3',
+                date: '2026-10-12',
+                changes: [
+                    '修复刷题功能，添加示例题目',
+                    '修复上传页面按钮固定在底部'
+                ]
+            },
+            {
+                version: '1.0.2',
+                date: '2026-10-12',
+                changes: [
+                    '修复PWA start_url路径',
+                    '支持添加到iPhone主屏幕'
+                ]
+            },
+            {
+                version: '1.0.1',
+                date: '2026-10-12',
+                changes: [
+                    '初始版本上线',
+                    '支持注册登录',
+                    '支持上传试卷批改',
+                    '支持错题库管理',
+                    '支持刷题练习'
+                ]
+            }
+        ];
+
         // ========== Data Store ==========
         const Store = {
             dbName: 'MyWrongQuestionsDB',
@@ -1322,6 +1461,7 @@
                         else if (action === 'wrong-list') this.showWrongList();
                         else if (action === 'practice') this.startPractice();
                         else if (action === 'add-wrong') this.showAddWrong();
+                        else if (action === 'about') this.showAbout();
                     });
                 });
 
@@ -1627,6 +1767,31 @@
                 document.getElementById('new-question-text').value = '';
                 document.getElementById('new-question-answer').value = '';
                 this.showPage('add-wrong');
+            },
+
+            showAbout() {
+                // 更新当前版本号
+                document.getElementById('current-version').textContent = 'v' + APP_VERSION;
+
+                // 渲染版本历史
+                this.renderChangelog();
+
+                this.showPage('about');
+            },
+
+            renderChangelog() {
+                const container = document.getElementById('changelog-list');
+                container.innerHTML = VERSION_HISTORY.map(v => `
+                    <div class="changelog-item">
+                        <div class="changelog-header">
+                            <span class="changelog-version">${v.version}</span>
+                            <span class="changelog-date">${v.date}</span>
+                        </div>
+                        <ul class="changelog-changes">
+                            ${v.changes.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('');
             },
 
             async saveWrongQuestion() {
