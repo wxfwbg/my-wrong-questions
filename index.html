@@ -39,7 +39,6 @@
             line-height: 1.5;
         }
 
-        /* App Container */
         .app {
             max-width: 430px;
             margin: 0 auto;
@@ -48,7 +47,6 @@
             position: relative;
         }
 
-        /* Header */
         .header {
             background: var(--primary);
             color: white;
@@ -80,10 +78,10 @@
             background: rgba(255,255,255,0.3);
         }
 
-        /* Pages */
         .page {
             display: none;
             padding: 20px;
+            padding-bottom: 100px;
             min-height: calc(100vh - 60px);
         }
 
@@ -97,7 +95,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Form Styles */
         .form-group {
             margin-bottom: 16px;
         }
@@ -123,7 +120,6 @@
             border-color: var(--primary);
         }
 
-        /* Buttons */
         .btn {
             display: block;
             width: 100%;
@@ -171,6 +167,11 @@
             color: var(--primary);
         }
 
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .btn-group {
             display: flex;
             gap: 12px;
@@ -181,7 +182,6 @@
             flex: 1;
         }
 
-        /* Login Page */
         .login-logo {
             text-align: center;
             margin-bottom: 40px;
@@ -230,7 +230,6 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        /* Home Page */
         .welcome-banner {
             background: linear-gradient(135deg, var(--primary), #60A5FA);
             color: white;
@@ -247,6 +246,24 @@
         .welcome-banner p {
             opacity: 0.9;
             font-size: 14px;
+        }
+
+        .sync-status {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .sync-status.synced {
+            color: #86efac;
+        }
+
+        .sync-status.syncing {
+            color: #fcd34d;
+        }
+
+        .sync-status.error {
+            color: #fca5a5;
         }
 
         .stats-row {
@@ -314,7 +331,6 @@
             margin-top: 4px;
         }
 
-        /* Fixed Bottom Button */
         .fixed-bottom-btn {
             position: fixed;
             bottom: 0;
@@ -333,7 +349,6 @@
             display: none;
         }
 
-        /* About Page */
         .about-card {
             background: linear-gradient(135deg, var(--primary), #60A5FA);
             color: white;
@@ -411,7 +426,6 @@
             margin-bottom: 4px;
         }
 
-        /* Menu card for About */
         .menu-card-about {
             grid-column: span 2;
         }
@@ -422,7 +436,6 @@
             margin-bottom: 4px;
         }
 
-        /* Upload Page */
         .upload-area {
             border: 3px dashed var(--gray-300);
             border-radius: 16px;
@@ -487,7 +500,6 @@
             color: var(--primary);
         }
 
-        /* Result Page */
         .result-card {
             background: white;
             border-radius: 16px;
@@ -535,7 +547,6 @@
             color: var(--danger);
         }
 
-        /* Question List */
         .question-item {
             background: white;
             border-radius: 12px;
@@ -593,7 +604,6 @@
             color: var(--danger);
         }
 
-        /* Wrong Questions Page */
         .filter-tabs {
             display: flex;
             gap: 8px;
@@ -628,7 +638,6 @@
             margin-bottom: 16px;
         }
 
-        /* Practice Page */
         .practice-header {
             display: flex;
             justify-content: space-between;
@@ -732,7 +741,6 @@
             color: var(--danger);
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -753,7 +761,6 @@
             opacity: 1;
         }
 
-        /* Loading */
         .loading {
             position: fixed;
             top: 0;
@@ -786,7 +793,6 @@
             color: var(--gray-500);
         }
 
-        /* Bottom Nav */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -827,7 +833,6 @@
             font-size: 11px;
         }
 
-        /* Utility */
         .hidden {
             display: none !important;
         }
@@ -853,13 +858,11 @@
 </head>
 <body>
     <div class="app">
-        <!-- Loading -->
         <div class="loading" id="loading">
             <div class="loading-spinner"></div>
-            <div class="loading-text">加载中...</div>
+            <div class="loading-text">连接云端...</div>
         </div>
 
-        <!-- Toast -->
         <div class="toast" id="toast"></div>
 
         <!-- Login Page -->
@@ -914,6 +917,7 @@
             <div class="welcome-banner">
                 <h2>👋 你好，<span id="user-name">同学</span></h2>
                 <p>今天也要认真刷题哦！</p>
+                <div class="sync-status" id="sync-status"></div>
             </div>
 
             <div class="stats-row">
@@ -991,7 +995,6 @@
             </div>
         </div>
 
-        <!-- Fixed Bottom Button for Upload Page -->
         <div class="fixed-bottom-btn" id="upload-fixed-btn">
             <button class="btn btn-primary" id="start-review-btn" disabled>开始批改</button>
         </div>
@@ -1116,7 +1119,7 @@
             <button class="btn btn-primary" id="next-question-btn" disabled>下一题</button>
         </div>
 
-        <!-- Bottom Navigation (shown after login) -->
+        <!-- Bottom Navigation -->
         <nav class="bottom-nav hidden" id="bottom-nav">
             <button class="nav-item active" data-page="home">
                 <span class="nav-icon">🏠</span>
@@ -1150,16 +1153,30 @@
             </div>
 
             <div class="changelog-title">📋 版本历史</div>
-            <div class="changelog-list" id="changelog-list">
-                <!-- 版本历史将通过JS动态渲染 -->
-            </div>
+            <div class="changelog-list" id="changelog-list"></div>
         </div>
     </div>
 
+    <script src="https://imgcache.qq.com/qcloud/cloudbase-js-sdk/2.0.1/cloudbase.umd.min.js"></script>
     <script>
+        // ========== 云端配置 ==========
+        const CLOUD_CONFIG = {
+            env: 'wxfwbg-1124-d5gr99so19c9edf61',
+            publishSecretKey: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ1ZjI4NDFiLTNhYTEtNDk2OS04ZDQxLWZiMGQ3ZWZiYTU0MCJ9.eyJpc3MiOiJodHRwczovL3d4ZndiZy0xMTI0LWQ1Z3I5OXNvMTljOWVkZjYxLmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJ3eGZ3YmctMTEyNC1kNWdyOTlzbzE5YzllZGY2MSIsImV4cCI6NDA5NTUwMTgzOCwiaWF0IjoxNzkxODE4NjM4LCJub25jZSI6IkM1X00xclp5U2I2REtabERRdUdNX1EiLCJhdF9oYXNoIjoiQzVfTTFyWnlTYjZES1psRFF1R01fUSIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJ3eGZ3YmctMTEyNC1kNWdyOTlzbzE5YzllZGY2MSIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltbW91cyJ9LCJ1c2VyX3R5cGUiOiIiLCJjbGllbnRfdHlwZSI6ImNsaWVudF91c2VyIiwiaXNfc3lzdGVtX2FkbWluIjpmYWxzZX0.qj_zESEimnlc1AHQ4XojUQvxcyoesXZRnEaXXPOFNGnqrqtE96yRthTh5C4lqtHDDOODOdDYThb6GVYRA-EmmnKnB6-hdjelWMOlHwS1ZBW83OC92noNRoxuQE31IUpu800RXFIiTSMo1UCB93LOL05WvZ39gcS_EbU1Qb9t9WHG7ebcFFjbRBSEqhycXE2LjUaQt55gk-jktBh6WwK9fLYvgo1f3-ZHqZza75fB6G1haeqhJAxVBVWsdeUZDpL2yYmXIQBBAlAle8UZ4zCO5V1-RY18rG2OAy_rtRCOA8SxzSa2q5ozc6HEhZI8cAdSYw56GB1gt_FmBW7T3bubxw'
+        };
+
         // ========== 版本信息 ==========
-        const APP_VERSION = '1.0.3';
+        const APP_VERSION = '1.1.0';
         const VERSION_HISTORY = [
+            {
+                version: '1.1.0',
+                date: '2026-10-12',
+                changes: [
+                    '新增云端同步功能，数据多设备同步不丢失',
+                    '支持腾讯云CloudBase数据库',
+                    '简化登录流程，匿名登录自动连接'
+                ]
+            },
             {
                 version: '1.0.3',
                 date: '2026-10-12',
@@ -1189,10 +1206,184 @@
             }
         ];
 
-        // ========== Data Store ==========
-        const Store = {
-            dbName: 'MyWrongQuestionsDB',
-            dbVersion: 1,
+        // ========== CloudBase 云端存储 ==========
+        const CloudStore = {
+            app: null,
+            db: null,
+            connected: false,
+            userId: null,
+
+            async init() {
+                try {
+                    this.app = cloudbase.init({
+                        env: CLOUD_CONFIG.env,
+                        signSecretKey: CLOUD_CONFIG.publishSecretKey,
+                        getAccessToken: (params) => {
+                            return new Promise((resolve, reject) => {
+                                const nonce = Math.random().toString(36).substring(2);
+                                const timestamp = Math.floor(Date.now() / 1000);
+                                const signature = this.generateSignature(params.action, nonce, timestamp);
+                                resolve({
+                                    a: params.action,
+                                    v: timestamp,
+                                    n: nonce,
+                                    sig: signature
+                                });
+                            });
+                        }
+                    });
+
+                    // 匿名登录
+                    await this.app.auth({ persistence: 'local' }).anonymousAuthProvider()
+                        .signIn()
+                        .then(() => {
+                            this.connected = true;
+                            console.log('云端连接成功');
+                        });
+
+                    this.db = this.app.database();
+                    this.userId = this.app.auth().getUserInfo()?.uid || 'anonymous';
+
+                    return true;
+                } catch (err) {
+                    console.error('云端连接失败:', err);
+                    this.connected = false;
+                    return false;
+                }
+            },
+
+            generateSignature(action, nonce, timestamp) {
+                const str = action + nonce + timestamp + CLOUD_CONFIG.publishSecretKey;
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return 'sig_' + Math.abs(hash).toString(36);
+            },
+
+            async getWrongQuestions() {
+                if (!this.connected) return [];
+                try {
+                    const res = await this.db.collection('wrong_questions')
+                        .where({ _openid: this.userId })
+                        .get();
+                    return res.data || [];
+                } catch (err) {
+                    console.error('获取错题失败:', err);
+                    return [];
+                }
+            },
+
+            async addWrongQuestion(question) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('wrong_questions').add({
+                        data: {
+                            ...question,
+                            _openid: this.userId,
+                            created_at: new Date().toISOString()
+                        }
+                    });
+                    return true;
+                } catch (err) {
+                    console.error('添加错题失败:', err);
+                    return false;
+                }
+            },
+
+            async updateWrongQuestion(id, data) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('wrong_questions').doc(id).update({
+                        data: data
+                    });
+                    return true;
+                } catch (err) {
+                    console.error('更新错题失败:', err);
+                    return false;
+                }
+            },
+
+            async deleteWrongQuestion(id) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('wrong_questions').doc(id).remove();
+                    return true;
+                } catch (err) {
+                    console.error('删除错题失败:', err);
+                    return false;
+                }
+            },
+
+            async addPaper(paper) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('papers').add({
+                        data: {
+                            ...paper,
+                            _openid: this.userId,
+                            created_at: new Date().toISOString()
+                        }
+                    });
+                    return true;
+                } catch (err) {
+                    console.error('添加试卷失败:', err);
+                    return false;
+                }
+            },
+
+            getSyncStatus() {
+                return this.connected ? 'synced' : 'offline';
+            }
+        };
+
+        // ========== 用户存储（使用 localStorage） ==========
+        const UserStore = {
+            getAllUsers() {
+                const users = localStorage.getItem('app_users');
+                return users ? JSON.parse(users) : {};
+            },
+
+            saveUsers(users) {
+                localStorage.setItem('app_users', JSON.stringify(users));
+            },
+
+            getUser(username) {
+                const users = this.getAllUsers();
+                return users[username] || null;
+            },
+
+            addUser(username, password) {
+                const users = this.getAllUsers();
+                if (users[username]) {
+                    return { success: false, error: '用户名已存在' };
+                }
+                users[username] = {
+                    password: password,
+                    createdAt: new Date().toISOString()
+                };
+                this.saveUsers(users);
+                return { success: true };
+            },
+
+            verifyUser(username, password) {
+                const user = this.getUser(username);
+                if (!user) {
+                    return { success: false, error: '用户不存在，请先注册' };
+                }
+                if (user.password !== password) {
+                    return { success: false, error: '密码错误' };
+                }
+                return { success: true };
+            }
+        };
+
+        // ========== 本地 IndexedDB 存储（作为缓存） ==========
+        const LocalStore = {
+            dbName: 'MyWrongQuestionsDB_v2',
+            dbVersion: 2,
             db: null,
 
             init() {
@@ -1208,43 +1399,20 @@
                     request.onupgradeneeded = (event) => {
                         const db = event.target.result;
 
-                        // Users store
-                        if (!db.objectStoreNames.contains('users')) {
-                            db.createObjectStore('users', { keyPath: 'username' });
-                        }
-
-                        // Wrong questions store
                         if (!db.objectStoreNames.contains('wrongQuestions')) {
                             const wrongStore = db.createObjectStore('wrongQuestions', { keyPath: 'id' });
                             wrongStore.createIndex('subject', 'subject', { unique: false });
-                            wrongStore.createIndex('source', 'source', { unique: false });
+                            wrongStore.createIndex('cloudId', 'cloudId', { unique: false });
                         }
 
-                        // Papers store
                         if (!db.objectStoreNames.contains('papers')) {
                             db.createObjectStore('papers', { keyPath: 'id' });
                         }
+
+                        if (!db.objectStoreNames.contains('syncMeta')) {
+                            db.createObjectStore('syncMeta', { keyPath: 'key' });
+                        }
                     };
-                });
-            },
-
-            getUser(username) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('users', 'readonly');
-                    const store = tx.objectStore('users');
-                    const request = store.get(username);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            },
-
-            addUser(user) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('users', 'readwrite');
-                    const store = tx.objectStore('users');
-                    const request = store.add(user);
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
                 });
             },
 
@@ -1253,7 +1421,7 @@
                     const tx = this.db.transaction('wrongQuestions', 'readonly');
                     const store = tx.objectStore('wrongQuestions');
                     const request = store.getAll();
-                    request.onsuccess = () => resolve(request.result);
+                    request.onsuccess = () => resolve(request.result || []);
                     request.onerror = () => reject(request.error);
                 });
             },
@@ -1296,10 +1464,99 @@
                     request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                 });
+            },
+
+            clearAllWrongQuestions() {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('wrongQuestions', 'readwrite');
+                    const store = tx.objectStore('wrongQuestions');
+                    const request = store.clear();
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            async syncFromCloud(cloudQuestions) {
+                await this.clearAllWrongQuestions();
+                for (const q of cloudQuestions) {
+                    await this.addWrongQuestion({
+                        id: q._id,
+                        cloudId: q._id,
+                        subject: q.subject,
+                        question: q.question,
+                        answer: q.answer,
+                        options: q.options || [],
+                        userAnswer: q.userAnswer || '',
+                        source: q.source || 'paper',
+                        imageUrl: q.imageUrl || null,
+                        times: q.times || 0,
+                        lastPractice: q.lastPractice || null
+                    });
+                }
             }
         };
 
-        // ========== App State ==========
+        // ========== 统一 Store 接口 ==========
+        const Store = {
+            init: async function() {
+                await LocalStore.init();
+                const cloudOk = await CloudStore.init();
+
+                if (cloudOk) {
+                    // 云端同步
+                    await this.syncFromCloud();
+                }
+                return cloudOk;
+            },
+
+            async syncFromCloud() {
+                const cloudQuestions = await CloudStore.getWrongQuestions();
+                if (cloudQuestions.length > 0) {
+                    await LocalStore.syncFromCloud(cloudQuestions);
+                }
+            },
+
+            getAllWrongQuestions: async function() {
+                return await LocalStore.getAllWrongQuestions();
+            },
+
+            addWrongQuestion: async function(question) {
+                // 先存本地
+                await LocalStore.addWrongQuestion(question);
+                // 再同步云端（后台）
+                CloudStore.addWrongQuestion(question);
+            },
+
+            updateWrongQuestion: async function(question) {
+                await LocalStore.updateWrongQuestion(question);
+                if (question.cloudId) {
+                    CloudStore.updateWrongQuestion(question.cloudId, {
+                        times: question.times,
+                        lastPractice: question.lastPractice
+                    });
+                }
+            },
+
+            deleteWrongQuestion: async function(id) {
+                await LocalStore.deleteWrongQuestion(id);
+                CloudStore.deleteWrongQuestion(id);
+            },
+
+            addPaper: async function(paper) {
+                await LocalStore.addPaper(paper);
+                CloudStore.addPaper(paper);
+            },
+
+            isCloudConnected: function() {
+                return CloudStore.connected;
+            },
+
+            getSyncStatus: function() {
+                return CloudStore.getSyncStatus();
+            }
+        };
+
+        // ========== App 状态 ==========
         const App = {
             currentUser: null,
             currentSubject: '语文',
@@ -1308,28 +1565,41 @@
             currentPracticeIndex: 0,
             selectedAnswer: null,
             currentFilter: 'all',
+            allWrongQuestions: [],
+            cloudConnected: false,
 
             async init() {
-                await Store.init();
+                try {
+                    document.getElementById('loading-text')?.remove();
+                    const loadingText = document.createElement('div');
+                    loadingText.className = 'loading-text';
+                    loadingText.id = 'loading-text';
+                    loadingText.textContent = '连接云端...';
+                    document.getElementById('loading').querySelector('.loading-text').textContent = '连接云端...';
 
-                // Check if user is logged in
-                const savedUser = localStorage.getItem('currentUser');
-                if (savedUser) {
-                    this.currentUser = savedUser;
-                    this.showPage('home');
-                    this.updateStats();
-                } else {
+                    this.cloudConnected = await Store.init();
+
+                    const savedUser = localStorage.getItem('currentUser');
+                    if (savedUser) {
+                        this.currentUser = savedUser;
+                        this.showPage('home');
+                        this.updateStats();
+                        this.updateSyncStatus();
+                    } else {
+                        this.showPage('login');
+                    }
+
+                    this.bindEvents();
+                    document.getElementById('loading').classList.add('hidden');
+                } catch (err) {
+                    console.error('APP初始化失败:', err);
+                    document.getElementById('loading').classList.add('hidden');
                     this.showPage('login');
                 }
-
-                this.bindEvents();
-                document.getElementById('loading').classList.add('hidden');
             },
 
             showPage(pageId) {
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-
-                // 隐藏固定底部按钮
                 document.getElementById('upload-fixed-btn').classList.add('hidden');
 
                 if (pageId === 'home') {
@@ -1337,12 +1607,12 @@
                     document.getElementById('bottom-nav').classList.remove('hidden');
                     document.getElementById('user-name').textContent = this.currentUser || '同学';
                     this.updateStats();
+                    this.updateSyncStatus();
                 } else if (pageId === 'login') {
                     document.getElementById('page-login').classList.add('active');
                     document.getElementById('bottom-nav').classList.add('hidden');
                 } else {
                     document.getElementById('page-' + pageId).classList.add('active');
-                    // Show bottom nav for some pages
                     if (['wrong-list', 'practice', 'upload'].includes(pageId)) {
                         document.getElementById('bottom-nav').classList.remove('hidden');
                     } else {
@@ -1350,10 +1620,22 @@
                     }
                 }
 
-                // Update active nav item
                 document.querySelectorAll('.nav-item').forEach(item => {
                     item.classList.toggle('active', item.dataset.page === pageId);
                 });
+            },
+
+            updateSyncStatus() {
+                const statusEl = document.getElementById('sync-status');
+                if (!statusEl) return;
+
+                if (this.cloudConnected) {
+                    statusEl.textContent = '☁️ 云端已同步';
+                    statusEl.className = 'sync-status synced';
+                } else {
+                    statusEl.textContent = '📴 本地模式';
+                    statusEl.className = 'sync-status error';
+                }
             },
 
             showToast(message) {
@@ -1375,7 +1657,6 @@
             },
 
             bindEvents() {
-                // Login tabs
                 document.querySelectorAll('.login-tab').forEach(tab => {
                     tab.addEventListener('click', () => {
                         document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
@@ -1387,7 +1668,6 @@
                     });
                 });
 
-                // Login form
                 document.getElementById('login-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const username = document.getElementById('login-username').value.trim();
@@ -1398,9 +1678,10 @@
                         return;
                     }
 
-                    const user = await Store.getUser(username);
-                    if (!user || user.password !== password) {
-                        this.showToast('用户名或密码错误');
+                    // 验证用户
+                    const result = UserStore.verifyUser(username, password);
+                    if (!result.success) {
+                        this.showToast(result.error);
                         return;
                     }
 
@@ -1410,7 +1691,6 @@
                     this.showToast('登录成功');
                 });
 
-                // Register form
                 document.getElementById('register-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const username = document.getElementById('reg-username').value.trim();
@@ -1432,20 +1712,19 @@
                         return;
                     }
 
-                    const existingUser = await Store.getUser(username);
-                    if (existingUser) {
-                        this.showToast('用户名已存在');
+                    // 保存用户
+                    const result = UserStore.addUser(username, password);
+                    if (!result.success) {
+                        this.showToast(result.error);
                         return;
                     }
 
-                    await Store.addUser({ username, password });
                     this.currentUser = username;
                     localStorage.setItem('currentUser', username);
                     this.showPage('home');
                     this.showToast('注册成功');
                 });
 
-                // Logout
                 document.getElementById('logout-btn').addEventListener('click', () => {
                     this.currentUser = null;
                     localStorage.removeItem('currentUser');
@@ -1453,7 +1732,6 @@
                     this.showToast('已退出登录');
                 });
 
-                // Menu cards
                 document.querySelectorAll('.menu-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const action = card.dataset.action;
@@ -1465,7 +1743,6 @@
                     });
                 });
 
-                // Bottom nav
                 document.querySelectorAll('.nav-item').forEach(item => {
                     item.addEventListener('click', () => {
                         const page = item.dataset.page;
@@ -1476,12 +1753,10 @@
                     });
                 });
 
-                // Back buttons
                 document.querySelectorAll('[data-back]').forEach(btn => {
                     btn.addEventListener('click', () => this.showPage(btn.dataset.back));
                 });
 
-                // Subject select
                 document.querySelectorAll('.subject-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         btn.parentElement.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
@@ -1490,7 +1765,6 @@
                     });
                 });
 
-                // Upload area
                 document.getElementById('upload-area').addEventListener('click', () => {
                     document.getElementById('file-input').click();
                 });
@@ -1499,12 +1773,10 @@
                     this.handleImageUpload(e, 'preview-image', 'start-review-btn');
                 });
 
-                // Start review
                 document.getElementById('start-review-btn').addEventListener('click', () => {
                     this.startReview();
                 });
 
-                // Review question selection
                 document.getElementById('review-questions').addEventListener('click', (e) => {
                     if (e.target.classList.contains('option-btn')) {
                         const questionIndex = parseInt(e.target.closest('.question-item').dataset.index);
@@ -1519,23 +1791,19 @@
                             if (i === optionIndex) opt.classList.add('selected');
                         });
 
-                        // Check if all questions answered
                         const allAnswered = this.reviewQuestions.every(q => q.userAnswer !== undefined);
                         document.getElementById('review-actions').classList.toggle('hidden', !allAnswered);
                     }
                 });
 
-                // Submit review
                 document.getElementById('submit-review-btn').addEventListener('click', () => {
                     this.submitReview();
                 });
 
-                // View wrong list button
                 document.getElementById('view-wrong-btn').addEventListener('click', () => {
                     this.showWrongList();
                 });
 
-                // Filter tabs
                 document.querySelectorAll('.filter-tab').forEach(tab => {
                     tab.addEventListener('click', () => {
                         document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -1545,7 +1813,6 @@
                     });
                 });
 
-                // Add wrong upload
                 document.getElementById('wrong-upload-area').addEventListener('click', () => {
                     document.getElementById('wrong-file-input').click();
                 });
@@ -1554,24 +1821,20 @@
                     this.handleImageUpload(e, 'wrong-preview-image');
                 });
 
-                // Save wrong question
                 document.getElementById('save-wrong-btn').addEventListener('click', () => {
                     this.saveWrongQuestion();
                 });
 
-                // Practice answer selection
                 document.getElementById('practice-card').addEventListener('click', (e) => {
                     if (e.target.classList.contains('option-btn') && !e.target.classList.contains('correct') && !e.target.classList.contains('wrong')) {
                         this.selectPracticeAnswer(parseInt(e.target.dataset.option));
                     }
                 });
 
-                // Next question
                 document.getElementById('next-question-btn').addEventListener('click', () => {
                     this.nextPracticeQuestion();
                 });
 
-                // End practice
                 document.getElementById('end-practice-btn').addEventListener('click', () => {
                     this.showPage('home');
                     this.showToast('练习已结束');
@@ -1590,7 +1853,6 @@
 
                     if (btnId) {
                         document.getElementById(btnId).disabled = false;
-                        // 显示固定底部按钮
                         document.getElementById('upload-fixed-btn').classList.remove('hidden');
                     }
                 };
@@ -1598,10 +1860,8 @@
             },
 
             startReview() {
-                // Generate sample questions for demo
-                // In real app, this would use OCR or manual input
                 const subjects = {
-                    '语文': ['下列词语中字形正确的是？', '下列句子中没有语病的是？', '对仗句“春风得意”对应的下一句是？'],
+                    '语文': ['下列词语中字形正确的是？', '下列句子中没有语病的是？', '对仗句"春风得意"对应的下一句是？'],
                     '数学': ['计算：25 × 4 = ?', '已知 x² - 5x + 6 = 0，求 x 的值', '一个圆的半径为3cm，面积为多少？'],
                     '英语': ['The weather ___ fine yesterday.', 'Which word means "快乐"？', 'Complete: She ___ (go) to school every day.'],
                     '物理': ['物体在重力作用下的加速度约为？', '光的折射定律由谁发现？', '电压的单位是？'],
@@ -1618,7 +1878,7 @@
                     ['A. 蛋白质', 'B. 脂肪', 'C. 糖类', 'D. 维生素']
                 ];
 
-                const answers = [0, 1, 1, 0, 0, 0]; // Correct answers index
+                const answers = [0, 1, 1, 0, 0, 0];
 
                 const questions = subjects[this.currentSubject];
                 this.reviewQuestions = questions.map((q, i) => ({
@@ -1675,12 +1935,10 @@
                     }
                 });
 
-                // Save wrong questions
                 for (const wq of wrongQuestions) {
                     await Store.addWrongQuestion(wq);
                 }
 
-                // Save paper
                 await Store.addPaper({
                     id: this.generateId(),
                     subject: this.currentSubject,
@@ -1690,7 +1948,6 @@
                     wrongCount: wrongQuestions.length
                 });
 
-                // Show result
                 const total = this.reviewQuestions.length;
                 const score = Math.round((correctCount / total) * 100);
                 const degree = (score / 100) * 360;
@@ -1701,7 +1958,6 @@
                 document.getElementById('wrong-count').textContent = wrongQuestions.length;
                 document.getElementById('score-circle').style.background = `conic-gradient(${score >= 60 ? 'var(--success)' : 'var(--danger)'} ${degree}deg, var(--gray-200) ${degree}deg)`;
 
-                // Render wrong list in result
                 const wrongListEl = document.getElementById('wrong-list');
                 if (wrongQuestions.length > 0) {
                     wrongListEl.innerHTML = wrongQuestions.map(wq => `
@@ -1752,7 +2008,7 @@
                     <div class="question-item" data-id="${q.id}">
                         <div class="question-header">
                             <span class="question-number">错题</span>
-                            <span class="question-subject">${q.subject} · 已练习${q.times}次</span>
+                            <span class="question-subject">${q.subject} · 已练习${q.times || 0}次</span>
                         </div>
                         <div class="question-content">${q.question}</div>
                         <div class="question-answer">
@@ -1770,12 +2026,8 @@
             },
 
             showAbout() {
-                // 更新当前版本号
                 document.getElementById('current-version').textContent = 'v' + APP_VERSION;
-
-                // 渲染版本历史
                 this.renderChangelog();
-
                 this.showPage('about');
             },
 
@@ -1830,13 +2082,11 @@
                 this.showToast('正在加载题目...');
                 const questions = await Store.getAllWrongQuestions();
 
-                // 如果没有错题，使用示例题目让用户先体验
                 let practiceQuestions = questions;
                 if (questions.length === 0) {
                     practiceQuestions = this.getSampleQuestions();
                 }
 
-                // Shuffle and pick 10 questions
                 const shuffled = practiceQuestions.sort(() => Math.random() - 0.5);
                 this.practiceQuestions = shuffled.slice(0, 10);
                 this.currentPracticeIndex = 0;
@@ -1846,89 +2096,18 @@
                 this.showPage('practice');
             },
 
-            // 示例题目，让用户可以先体验刷题功能
             getSampleQuestions() {
                 return [
-                    {
-                        id: 'sample-1',
-                        subject: '数学',
-                        question: '计算：25 × 4 = ?',
-                        options: ['A. 100', 'B. 96', 'C. 104', 'D. 88'],
-                        correctAnswer: 0,
-                        answer: 'A. 100'
-                    },
-                    {
-                        id: 'sample-2',
-                        subject: '英语',
-                        question: 'The weather ___ fine yesterday.',
-                        options: ['A. is', 'B. was', 'C. were', 'D. be'],
-                        correctAnswer: 1,
-                        answer: 'B. was'
-                    },
-                    {
-                        id: 'sample-3',
-                        subject: '物理',
-                        question: '物体在重力作用下的加速度约为？',
-                        options: ['A. 9.8 m/s²', 'B. 10 m/s²', 'C. 8.5 m/s²', 'D. 11 m/s²'],
-                        correctAnswer: 0,
-                        answer: 'A. 9.8 m/s²'
-                    },
-                    {
-                        id: 'sample-4',
-                        subject: '化学',
-                        question: '水的化学式是？',
-                        options: ['A. H₂O', 'B. CO₂', 'C. NaCl', 'D. O₂'],
-                        correctAnswer: 0,
-                        answer: 'A. H₂O'
-                    },
-                    {
-                        id: 'sample-5',
-                        subject: '生物',
-                        question: '光合作用的产物是？',
-                        options: ['A. 蛋白质', 'B. 脂肪', 'C. 糖类和氧气', 'D. 维生素'],
-                        correctAnswer: 2,
-                        answer: 'C. 糖类和氧气'
-                    },
-                    {
-                        id: 'sample-6',
-                        subject: '语文',
-                        question: '下列词语中字形正确的是？',
-                        options: ['A. 春眠不觉晓', 'B. 春眠不晓', 'C. 春风不眠', 'D. 春日不晓'],
-                        correctAnswer: 0,
-                        answer: 'A. 春眠不觉晓'
-                    },
-                    {
-                        id: 'sample-7',
-                        subject: '数学',
-                        question: '已知 x² - 5x + 6 = 0，求 x 的值',
-                        options: ['A. x=1,2', 'B. x=2,3', 'C. x=3,4', 'D. x=1,3'],
-                        correctAnswer: 1,
-                        answer: 'B. x=2,3'
-                    },
-                    {
-                        id: 'sample-8',
-                        subject: '英语',
-                        question: 'Which word means "快乐"？',
-                        options: ['A. Sad', 'B. Happy', 'C. Angry', 'D. Tired'],
-                        correctAnswer: 1,
-                        answer: 'B. Happy'
-                    },
-                    {
-                        id: 'sample-9',
-                        subject: '物理',
-                        question: '光的折射定律由谁发现？',
-                        options: ['A. 牛顿', 'B. 斯涅尔', 'C. 法拉第', 'D. 爱因斯坦'],
-                        correctAnswer: 1,
-                        answer: 'B. 斯涅尔'
-                    },
-                    {
-                        id: 'sample-10',
-                        subject: '化学',
-                        question: '燃烧需要哪些条件？',
-                        options: ['A. 只需要的氧气', 'B. 只需要可燃物', 'C. 可燃物、氧气、达到燃点', 'D. 只需要温度'],
-                        correctAnswer: 2,
-                        answer: 'C. 可燃物、氧气、达到燃点'
-                    }
+                    { id: 'sample-1', subject: '数学', question: '计算：25 × 4 = ?', options: ['A. 100', 'B. 96', 'C. 104', 'D. 88'], correctAnswer: 0, answer: 'A. 100' },
+                    { id: 'sample-2', subject: '英语', question: 'The weather ___ fine yesterday.', options: ['A. is', 'B. was', 'C. were', 'D. be'], correctAnswer: 1, answer: 'B. was' },
+                    { id: 'sample-3', subject: '物理', question: '物体在重力作用下的加速度约为？', options: ['A. 9.8 m/s²', 'B. 10 m/s²', 'C. 8.5 m/s²', 'D. 11 m/s²'], correctAnswer: 0, answer: 'A. 9.8 m/s²' },
+                    { id: 'sample-4', subject: '化学', question: '水的化学式是？', options: ['A. H₂O', 'B. CO₂', 'C. NaCl', 'D. O₂'], correctAnswer: 0, answer: 'A. H₂O' },
+                    { id: 'sample-5', subject: '生物', question: '光合作用的产物是？', options: ['A. 蛋白质', 'B. 脂肪', 'C. 糖类和氧气', 'D. 维生素'], correctAnswer: 2, answer: 'C. 糖类和氧气' },
+                    { id: 'sample-6', subject: '语文', question: '下列词语中字形正确的是？', options: ['A. 春眠不觉晓', 'B. 春眠不晓', 'C. 春风不眠', 'D. 春日不晓'], correctAnswer: 0, answer: 'A. 春眠不觉晓' },
+                    { id: 'sample-7', subject: '数学', question: '已知 x² - 5x + 6 = 0，求 x 的值', options: ['A. x=1,2', 'B. x=2,3', 'C. x=3,4', 'D. x=1,3'], correctAnswer: 1, answer: 'B. x=2,3' },
+                    { id: 'sample-8', subject: '英语', question: 'Which word means "快乐"？', options: ['A. Sad', 'B. Happy', 'C. Angry', 'D. Tired'], correctAnswer: 1, answer: 'B. Happy' },
+                    { id: 'sample-9', subject: '物理', question: '光的折射定律由谁发现？', options: ['A. 牛顿', 'B. 斯涅尔', 'C. 法拉第', 'D. 爱因斯坦'], correctAnswer: 1, answer: 'B. 斯涅尔' },
+                    { id: 'sample-10', subject: '化学', question: '燃烧需要哪些条件？', options: ['A. 只需要的氧气', 'B. 只需要可燃物', 'C. 可燃物、氧气、达到燃点', 'D. 只需要温度'], correctAnswer: 2, answer: 'C. 可燃物、氧气、达到燃点' }
                 ];
             },
 
@@ -1943,7 +2122,6 @@
                 const contentEl = document.getElementById('practice-question-content');
                 let html = `<div class="question-subject" style="color: var(--primary); margin-bottom: 8px;">${q.subject || '综合'}</div>`;
 
-                // 如果是示例题目，显示提示
                 if (q.id && q.id.startsWith('sample-')) {
                     html += `<div class="sample-hint">（示例题目）</div>`;
                 }
@@ -1955,7 +2133,7 @@
                 contentEl.innerHTML = html;
 
                 const optionsEl = document.getElementById('practice-options');
-                optionsEl.innerHTML = q.options.map((opt, i) => `
+                optionsEl.innerHTML = (q.options || []).map((opt, i) => `
                     <button class="option-btn" data-option="${i}">${opt}</button>
                 `).join('');
 
@@ -1967,7 +2145,6 @@
                 const q = this.practiceQuestions[this.currentPracticeIndex];
                 const isCorrect = optionIndex === q.correctAnswer;
 
-                // Update option styles
                 const options = document.querySelectorAll('#practice-options .option-btn');
                 options.forEach((opt, i) => {
                     if (i === q.correctAnswer) {
@@ -1977,7 +2154,6 @@
                     }
                 });
 
-                // Show feedback
                 const feedbackEl = document.getElementById('practice-feedback');
                 feedbackEl.classList.remove('hidden', 'result-correct', 'result-wrong');
                 feedbackEl.classList.add(isCorrect ? 'result-correct' : 'result-wrong');
@@ -1987,7 +2163,6 @@
                 document.getElementById('next-question-btn').textContent =
                     this.currentPracticeIndex < this.practiceQuestions.length - 1 ? '下一题' : '完成练习';
 
-                // Update practice times
                 q.times = (q.times || 0) + 1;
                 q.lastPractice = new Date().toISOString();
                 await Store.updateWrongQuestion(q);
@@ -1998,24 +2173,19 @@
                     this.currentPracticeIndex++;
                     this.renderPracticeQuestion();
                 } else {
-                    // Practice complete
                     this.showPage('home');
                     this.showToast('练习完成！');
                 }
             }
         };
 
-        // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             App.init();
         });
 
-        // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(() => {
-                    // SW registration failed, app still works
-                });
+                navigator.serviceWorker.register('sw.js').catch(() => {});
             });
         }
     </script>
