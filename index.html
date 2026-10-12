@@ -1157,11 +1157,11 @@
         </div>
     </div>
 
+    <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
     <script>
         // ========== 云端配置 ==========
         const CLOUD_CONFIG = {
-            env: 'wxfwbg-1124-d5gr99so19c9edf61',
-            secretKey: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ1ZjI4NDFiLTNhYTEtNDk2OS04ZDQxLWZiMGQ3ZWZiYTU0MCJ9.eyJpc3MiOiJodHRwczovL3d4ZndiZy0xMTI0LWQ1Z3I5OXNvMTljOWVkZjYxLmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJ3eGZ3YmctMTEyNC1kNWdyOTlzbzE5YzllZGY2MSIsImV4cCI6NDA5NTUwMTgzOCwiaWF0IjoxNzkxODE4NjM4LCJub25jZSI6IkM1X00xclp5U2I2REtabERRdUdNX1EiLCJhdF9oYXNoIjoiQzVfTTFyWnlTYjZES1psRFF1R01fUSIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJ3eGZ3YmctMTEyNC1kNWdyOTlzbzE5YzllZGY2MSIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltbW91cyJ9LCJ1c2VyX3R5cGUiOiIiLCJjbGllbnRfdHlwZSI6ImNsaWVudF91c2VyIiwiaXNfc3lzdGVtX2FkbWluIjpmYWxzZX0.qj_zESEimnlc1AHQ4XojUQvxcyoesXZRnEaXXPOFNGnqrqtE96yRthTh5C4lqtHDDOODOdDYThb6GVYRA-EmmnKnB6-hdjelWMOlHwS1ZBW83OC92noNRoxuQE31IUpu800RXFIiTSMo1UCB93LOL05WvZ39gcS_EbU1Qb9t9WHG7ebcFFjbRBSEqhycXE2LjUaQt55gk-jktBh6WwK9fLYvgo1f3-ZHqZza75fB6G1haeqhJAxVBVWsdeUZDpL2yYmXIQBBAlAle8UZ4zCO5V1-RY18rG2OAy_rtRCOA8SxzSa2q5ozc6HEhZI8cAdSYw56GB1gt_FmBW7T3bubxw'
+            env: 'wxfwbg-1124-d5gr99so19c9edf61'
         };
 
         // ========== 版本信息 ==========
@@ -1213,30 +1213,35 @@
             }
         ];
 
-        // ========== CloudBase 云端存储（简化版）==========
+        // ========== CloudBase 云端存储（使用官方 SDK）==========
         const CloudStore = {
+            app: null,
+            db: null,
             connected: false,
             userId: null,
             syncPending: false,
-            pendingQueue: [],
 
             async init() {
                 try {
-                    // 使用用户名作为用户ID，确保同一账号的数据能同步
-                    const savedUser = localStorage.getItem('currentUser');
-                    if (savedUser) {
-                        this.userId = 'user_' + savedUser;
-                    } else {
-                        // 匿名用户
-                        let anonymousId = localStorage.getItem('anonymousId');
-                        if (!anonymousId) {
-                            anonymousId = 'anon_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-                            localStorage.setItem('anonymousId', anonymousId);
-                        }
-                        this.userId = anonymousId;
-                    }
+                    // 初始化 CloudBase
+                    this.app = cloudbase.init({
+                        env: CLOUD_CONFIG.env
+                    });
+
+                    // 匿名登录
+                    const auth = this.app.auth({
+                        persistence: 'local'
+                    });
+
+                    await auth.signInAnonymously();
+
+                    // 获取用户信息
+                    const userInfo = auth.getUserInfo();
+                    this.userId = userInfo.uid || 'anonymous';
+
+                    this.db = this.app.database();
                     this.connected = true;
-                    console.log('云端模块初始化成功，用户ID:', this.userId);
+                    console.log('云端连接成功，用户ID:', this.userId);
                     return true;
                 } catch (err) {
                     console.error('云端初始化失败:', err);
@@ -1245,40 +1250,29 @@
                 }
             },
 
-            // 云端同步（尝试连接，成功则同步）
-            async trySync() {
-                if (!this.connected || !this.userId) return;
-
-                // 收集待同步的数据
-                const localData = await LocalStore.getAllWrongQuestions();
-                const pendingData = localData.filter(q => !q.cloudSynced);
-
-                if (pendingData.length > 0) {
-                    console.log('准备同步', pendingData.length, '条数据到云端...');
-                    // 实际同步逻辑（后台执行）
-                    this.syncPending = true;
-                }
-            },
-
             // ========== 用户管理（云端）==========
             async cloudRegister(username, password) {
                 if (!this.connected) return { success: false, error: '云端未连接' };
                 try {
-                    // 先检查用户名是否已存在
-                    const existing = await this.cloudGetUser(username);
-                    if (existing) {
+                    // 先查询用户名是否已存在
+                    const existing = await this.db.collection('users')
+                        .where({ username: username })
+                        .limit(1)
+                        .get();
+
+                    if (existing.data && existing.data.length > 0) {
                         return { success: false, error: '用户名已存在' };
                     }
 
                     // 写入数据库
-                    const result = await this.httpRequest('users', 'add', {
+                    await this.db.collection('users').add({
                         data: {
                             username: username,
                             password: password,
                             created_at: new Date().toISOString()
                         }
                     });
-                    console.log('云端注册成功:', result);
+                    console.log('云端注册成功:', username);
                     return { success: true };
                 } catch (err) {
                     console.error('云端注册失败:', err);
@@ -1289,13 +1283,20 @@
             async cloudLogin(username, password) {
                 if (!this.connected) return { success: false, error: '云端未连接' };
                 try {
-                    const user = await this.cloudGetUser(username);
-                    if (!user) {
+                    const result = await this.db.collection('users')
+                        .where({ username: username })
+                        .limit(1)
+                        .get();
+
+                    if (!result.data || result.data.length === 0) {
                         return { success: false, error: '用户不存在，请先注册' };
                     }
+
+                    const user = result.data[0];
                     if (user.password !== password) {
                         return { success: false, error: '密码错误' };
                     }
+
                     return { success: true };
                 } catch (err) {
                     console.error('云端登录失败:', err);
@@ -1303,52 +1304,76 @@
                 }
             },
 
-            async cloudGetUser(username) {
+            // ========== 错题管理（云端）==========
+            async getWrongQuestions() {
+                if (!this.connected) return [];
                 try {
-                    const result = await this.httpRequest('users', 'query', {
-                        query: {
-                            where: { username: username },
-                            limit: 1
-                        }
-                    });
-                    if (result.data && result.data.length > 0) {
-                        return result.data[0];
-                    }
-                    return null;
+                    const res = await this.db.collection('wrong_questions')
+                        .where({ _openid: this.userId })
+                        .get();
+                    return res.data || [];
                 } catch (err) {
-                    console.error('查询用户失败:', err);
-                    return null;
+                    console.error('获取错题失败:', err);
+                    return [];
                 }
             },
 
-            // HTTP API 请求
-            async httpRequest(collection, action, payload) {
-                const baseUrl = 'https://tcb-api.tencentcloudapi.com/v2/gateway';
-                const timestamp = Math.floor(Date.now() / 1000);
-                const nonce = Math.random().toString(36).substring(2, 10);
-
-                const body = {
-                    env: CLOUD_CONFIG.env,
-                    action: 'database.' + action,
-                    requestData: payload,
-                    timestamp: timestamp,
-                    nonce: nonce
-                };
-
-                const response = await fetch(baseUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CloudBase-Authorization': CLOUD_CONFIG.secretKey
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                const result = await response.json();
-                if (result.code) {
-                    throw new Error(result.message || 'API请求失败');
+            async addWrongQuestion(question) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('wrong_questions').add({
+                        data: {
+                            ...question,
+                            _openid: this.userId,
+                            created_at: new Date().toISOString()
+                        }
+                    });
+                    return true;
+                } catch (err) {
+                    console.error('添加错题失败:', err);
+                    return false;
                 }
-                return result.responseData || result;
+            },
+
+            async updateWrongQuestion(id, data) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('wrong_questions').doc(id).update({
+                        data: data
+                    });
+                    return true;
+                } catch (err) {
+                    console.error('更新错题失败:', err);
+                    return false;
+                }
+            },
+
+            async deleteWrongQuestion(id) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('wrong_questions').doc(id).remove();
+                    return true;
+                } catch (err) {
+                    console.error('删除错题失败:', err);
+                    return false;
+                }
+            },
+
+            async addPaper(paper) {
+                if (!this.connected) return false;
+                try {
+                    await this.db.collection('papers').add({
+                        data: {
+                            ...paper,
+                            _openid: this.userId,
+                            created_at: new Date().toISOString()
+                        }
+                    });
+                    return true;
+                } catch (err) {
+                    console.error('添加试卷失败:', err);
+                    return false;
+                }
             },
 
             getSyncStatus() {
@@ -1529,8 +1554,10 @@
             },
 
             async syncFromCloud() {
-                // 云端同步（暂时跳过，本地优先）
-                console.log('使用本地数据，云端同步功能开发中...');
+                const cloudQuestions = await CloudStore.getWrongQuestions();
+                if (cloudQuestions.length > 0) {
+                    await LocalStore.syncFromCloud(cloudQuestions);
+                }
             },
 
             getAllWrongQuestions: async function() {
@@ -1538,20 +1565,28 @@
             },
 
             addWrongQuestion: async function(question) {
-                // 只存本地
                 await LocalStore.addWrongQuestion(question);
+                CloudStore.addWrongQuestion(question);
             },
 
             updateWrongQuestion: async function(question) {
                 await LocalStore.updateWrongQuestion(question);
+                if (question.cloudId) {
+                    CloudStore.updateWrongQuestion(question.cloudId, {
+                        times: question.times,
+                        lastPractice: question.lastPractice
+                    });
+                }
             },
 
             deleteWrongQuestion: async function(id) {
                 await LocalStore.deleteWrongQuestion(id);
+                CloudStore.deleteWrongQuestion(id);
             },
 
             addPaper: async function(paper) {
                 await LocalStore.addPaper(paper);
+                CloudStore.addPaper(paper);
             },
 
             isCloudConnected: function() {
