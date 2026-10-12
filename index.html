@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#3B82F6">
+    <title>我的错题本</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%233B82F6' width='100' height='100' rx='20'/><text y='70' x='50' text-anchor='middle' font-size='60' fill='white'>✏️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-500: #6B7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-900);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* App Container */
+        .app {
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: white;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .header-btn:active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* Login Page */
+        .login-logo {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 60px;
+        }
+
+        .login-logo-icon {
+            font-size: 80px;
+            margin-bottom: 16px;
+        }
+
+        .login-logo h2 {
+            font-size: 28px;
+            color: var(--primary);
+        }
+
+        .login-logo p {
+            color: var(--gray-500);
+            margin-top: 8px;
+        }
+
+        .login-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .login-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Home Page */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), #60A5FA);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        .welcome-banner h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .welcome-banner p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .menu-card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .menu-card:active {
+            transform: scale(0.98);
+            background: var(--gray-100);
+        }
+
+        .menu-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .menu-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .menu-desc {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        /* Upload Page */
+        .upload-area {
+            border: 3px dashed var(--gray-300);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            background: var(--gray-100);
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:active {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .preview-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            background: var(--gray-100);
+        }
+
+        .subject-select {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .subject-btn {
+            padding: 12px 8px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .subject-btn.active {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+
+        /* Result Page */
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: conic-gradient(var(--success) 0deg, var(--gray-200) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .score-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .score-total {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .wrong-count {
+            color: var(--danger);
+        }
+
+        /* Question List */
+        .question-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .question-number {
+            background: var(--danger);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .question-subject {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .question-content {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .question-answer {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .answer-tag {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .answer-correct {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .answer-wrong {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Wrong Questions Page */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border: none;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-500);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        /* Practice Page */
+        .practice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .progress-info {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .practice-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .practice-question {
+            font-size: 17px;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .practice-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .practice-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            padding: 16px 20px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-btn:active {
+            background: var(--gray-100);
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .option-btn.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .option-btn.wrong {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .result-feedback {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .result-correct {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .result-wrong {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--gray-900);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            color: var(--gray-500);
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 430px;
+            background: white;
+            display: flex;
+            border-top: 1px solid var(--gray-200);
+            padding: 8px 0;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gray-500);
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+        }
+
+        /* Utility */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        .mt-24 {
+            margin-top: 24px;
+        }
+
+        .link-text {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">加载中...</div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+
+        <!-- Login Page -->
+        <div class="page active" id="page-login">
+            <div class="login-logo">
+                <div class="login-logo-icon">📚</div>
+                <h2>我的错题本</h2>
+                <p>让错题成为进步的阶梯</p>
+            </div>
+
+            <div class="login-tabs">
+                <button class="login-tab active" data-tab="login">登录</button>
+                <button class="login-tab" data-tab="register">注册</button>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="login-username" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="login-password" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary">登录</button>
+            </form>
+
+            <form id="register-form" class="hidden">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="reg-username" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="reg-password" placeholder="请输入密码（至少6位）" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-input" id="reg-password-confirm" placeholder="请再次输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary">注册</button>
+            </form>
+        </div>
+
+        <!-- Home Page -->
+        <div class="page" id="page-home">
+            <div class="header">
+                <h1>我的错题本</h1>
+                <button class="header-btn" id="logout-btn">退出</button>
+            </div>
+
+            <div class="welcome-banner">
+                <h2>👋 你好，<span id="user-name">同学</span></h2>
+                <p>今天也要认真刷题哦！</p>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">错题总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-practiced">0</div>
+                    <div class="stat-label">已练习</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-mastered">0</div>
+                    <div class="stat-label">已掌握</div>
+                </div>
+            </div>
+
+            <div class="menu-grid">
+                <div class="menu-card" data-action="upload">
+                    <div class="menu-icon">📷</div>
+                    <div class="menu-title">上传试卷</div>
+                    <div class="menu-desc">拍照录入新试卷</div>
+                </div>
+                <div class="menu-card" data-action="wrong-list">
+                    <div class="menu-icon">📝</div>
+                    <div class="menu-title">错题库</div>
+                    <div class="menu-desc">查看所有错题</div>
+                </div>
+                <div class="menu-card" data-action="practice">
+                    <div class="menu-icon">✏️</div>
+                    <div class="menu-title">开始刷题</div>
+                    <div class="menu-desc">随机练习错题</div>
+                </div>
+                <div class="menu-card" data-action="add-wrong">
+                    <div class="menu-icon">➕</div>
+                    <div class="menu-title">添加错题</div>
+                    <div class="menu-desc">手动录入错题</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Page -->
+        <div class="page" id="page-upload">
+            <div class="header">
+                <h1>📷 上传试卷</h1>
+                <button class="header-btn" data-back="home">返回</button>
+            </div>
+
+            <div class="subject-select">
+                <button type="button" class="subject-btn active" data-subject="语文">语文</button>
+                <button type="button" class="subject-btn" data-subject="数学">数学</button>
+                <button type="button" class="subject-btn" data-subject="英语">英语</button>
+                <button type="button" class="subject-btn" data-subject="物理">物理</button>
+                <button type="button" class="subject-btn" data-subject="化学">化学</button>
+                <button type="button" class="subject-btn" data-subject="生物">生物</button>
+            </div>
+
+            <div class="upload-area" id="upload-area">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">点击拍照上传试卷</div>
+                <div class="upload-hint">支持 JPG、PNG 格式</div>
+            </div>
+            <input type="file" id="file-input" accept="image/*" capture="environment" class="hidden">
+
+            <img id="preview-image" class="preview-image hidden">
+
+            <div class="form-group">
+                <label class="form-label">总分（选填）</label>
+                <input type="number" class="form-input" id="total-score" placeholder="例如：100" value="100">
+            </div>
+
+            <button class="btn btn-primary" id="start-review-btn" disabled>开始批改</button>
+        </div>
+
+        <!-- Review Page -->
+        <div class="page" id="page-review">
+            <div class="header">
+                <h1>✅ 批改试卷</h1>
+                <button class="header-btn" data-back="home">返回</button>
+            </div>
+
+            <div id="review-questions"></div>
+
+            <div class="btn-group hidden" id="review-actions">
+                <button class="btn btn-primary" id="submit-review-btn">提交批改</button>
+            </div>
+        </div>
+
+        <!-- Result Page -->
+        <div class="page" id="page-result">
+            <div class="header">
+                <h1>📊 批改结果</h1>
+                <button class="header-btn" data-back="home">返回</button>
+            </div>
+
+            <div class="result-card">
+                <div class="score-circle" id="score-circle">
+                    <div class="score-inner">
+                        <div class="score-value" id="score-value">0</div>
+                        <div class="score-total">总分 <span id="score-total">100</span></div>
+                    </div>
+                </div>
+                <p>做对了 <strong id="correct-count">0</strong> 题，错题 <strong class="wrong-count" id="wrong-count">0</strong> 题</p>
+            </div>
+
+            <h3 style="margin-bottom: 12px;">错题详情</h3>
+            <div id="wrong-list"></div>
+
+            <button class="btn btn-primary mt-24" id="view-wrong-btn">进入错题库</button>
+        </div>
+
+        <!-- Wrong List Page -->
+        <div class="page" id="page-wrong-list">
+            <div class="header">
+                <h1>📝 错题库</h1>
+                <button class="header-btn" data-back="home">返回</button>
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">全部</button>
+                <button class="filter-tab" data-filter="语文">语文</button>
+                <button class="filter-tab" data-filter="数学">数学</button>
+                <button class="filter-tab" data-filter="英语">英语</button>
+                <button class="filter-tab" data-filter="物理">物理</button>
+                <button class="filter-tab" data-filter="化学">化学</button>
+                <button class="filter-tab" data-filter="生物">生物</button>
+            </div>
+
+            <div id="wrong-questions-list"></div>
+        </div>
+
+        <!-- Add Wrong Page -->
+        <div class="page" id="page-add-wrong">
+            <div class="header">
+                <h1>➕ 添加错题</h1>
+                <button class="header-btn" data-back="home">返回</button>
+            </div>
+
+            <div class="subject-select">
+                <button type="button" class="subject-btn active" data-subject="语文">语文</button>
+                <button type="button" class="subject-btn" data-subject="数学">数学</button>
+                <button type="button" class="subject-btn" data-subject="英语">英语</button>
+                <button type="button" class="subject-btn" data-subject="物理">物理</button>
+                <button type="button" class="subject-btn" data-subject="化学">化学</button>
+                <button type="button" class="subject-btn" data-subject="生物">生物</button>
+            </div>
+
+            <div class="upload-area" id="wrong-upload-area">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">点击拍照题目</div>
+                <div class="upload-hint">可选</div>
+            </div>
+            <input type="file" id="wrong-file-input" accept="image/*" capture="environment" class="hidden">
+
+            <img id="wrong-preview-image" class="preview-image hidden">
+
+            <div class="form-group mt-16">
+                <label class="form-label">题目内容</label>
+                <input type="text" class="form-input" id="new-question-text" placeholder="请输入题目内容">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">正确答案</label>
+                <input type="text" class="form-input" id="new-question-answer" placeholder="请输入正确答案">
+            </div>
+
+            <button class="btn btn-success" id="save-wrong-btn">保存错题</button>
+        </div>
+
+        <!-- Practice Page -->
+        <div class="page" id="page-practice">
+            <div class="header">
+                <h1>✏️ 刷题练习</h1>
+                <button class="header-btn" data-back="home">返回</button>
+            </div>
+
+            <div class="practice-header">
+                <span id="practice-progress">1/10</span>
+                <button class="header-btn" id="end-practice-btn">结束练习</button>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 10%"></div>
+            </div>
+
+            <div class="practice-card" id="practice-card">
+                <div id="practice-question-content"></div>
+                <div class="practice-options" id="practice-options"></div>
+                <div class="result-feedback hidden" id="practice-feedback"></div>
+            </div>
+
+            <button class="btn btn-primary" id="next-question-btn" disabled>下一题</button>
+        </div>
+
+        <!-- Bottom Navigation (shown after login) -->
+        <nav class="bottom-nav hidden" id="bottom-nav">
+            <button class="nav-item active" data-page="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">首页</span>
+            </button>
+            <button class="nav-item" data-page="wrong-list">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">错题</span>
+            </button>
+            <button class="nav-item" data-page="practice">
+                <span class="nav-icon">✏️</span>
+                <span class="nav-label">刷题</span>
+            </button>
+            <button class="nav-item" data-page="upload">
+                <span class="nav-icon">📷</span>
+                <span class="nav-label">上传</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // ========== Data Store ==========
+        const Store = {
+            dbName: 'MyWrongQuestionsDB',
+            dbVersion: 1,
+            db: null,
+
+            init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.dbVersion);
+
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve();
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+
+                        // Users store
+                        if (!db.objectStoreNames.contains('users')) {
+                            db.createObjectStore('users', { keyPath: 'username' });
+                        }
+
+                        // Wrong questions store
+                        if (!db.objectStoreNames.contains('wrongQuestions')) {
+                            const wrongStore = db.createObjectStore('wrongQuestions', { keyPath: 'id' });
+                            wrongStore.createIndex('subject', 'subject', { unique: false });
+                            wrongStore.createIndex('source', 'source', { unique: false });
+                        }
+
+                        // Papers store
+                        if (!db.objectStoreNames.contains('papers')) {
+                            db.createObjectStore('papers', { keyPath: 'id' });
+                        }
+                    };
+                });
+            },
+
+            getUser(username) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('users', 'readonly');
+                    const store = tx.objectStore('users');
+                    const request = store.get(username);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            addUser(user) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('users', 'readwrite');
+                    const store = tx.objectStore('users');
+                    const request = store.add(user);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            getAllWrongQuestions() {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('wrongQuestions', 'readonly');
+                    const store = tx.objectStore('wrongQuestions');
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            addWrongQuestion(question) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('wrongQuestions', 'readwrite');
+                    const store = tx.objectStore('wrongQuestions');
+                    const request = store.add(question);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            updateWrongQuestion(question) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('wrongQuestions', 'readwrite');
+                    const store = tx.objectStore('wrongQuestions');
+                    const request = store.put(question);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            deleteWrongQuestion(id) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('wrongQuestions', 'readwrite');
+                    const store = tx.objectStore('wrongQuestions');
+                    const request = store.delete(id);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            addPaper(paper) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('papers', 'readwrite');
+                    const store = tx.objectStore('papers');
+                    const request = store.add(paper);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        };
+
+        // ========== App State ==========
+        const App = {
+            currentUser: null,
+            currentSubject: '语文',
+            reviewQuestions: [],
+            practiceQuestions: [],
+            currentPracticeIndex: 0,
+            selectedAnswer: null,
+            currentFilter: 'all',
+
+            async init() {
+                await Store.init();
+
+                // Check if user is logged in
+                const savedUser = localStorage.getItem('currentUser');
+                if (savedUser) {
+                    this.currentUser = savedUser;
+                    this.showPage('home');
+                    this.updateStats();
+                } else {
+                    this.showPage('login');
+                }
+
+                this.bindEvents();
+                document.getElementById('loading').classList.add('hidden');
+            },
+
+            showPage(pageId) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+                if (pageId === 'home') {
+                    document.getElementById('page-home').classList.add('active');
+                    document.getElementById('bottom-nav').classList.remove('hidden');
+                    document.getElementById('user-name').textContent = this.currentUser || '同学';
+                    this.updateStats();
+                } else if (pageId === 'login') {
+                    document.getElementById('page-login').classList.add('active');
+                    document.getElementById('bottom-nav').classList.add('hidden');
+                } else {
+                    document.getElementById('page-' + pageId).classList.add('active');
+                    // Show bottom nav for some pages
+                    if (['wrong-list', 'practice', 'upload'].includes(pageId)) {
+                        document.getElementById('bottom-nav').classList.remove('hidden');
+                    } else {
+                        document.getElementById('bottom-nav').classList.add('hidden');
+                    }
+                }
+
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.page === pageId);
+                });
+            },
+
+            showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2500);
+            },
+
+            generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            },
+
+            async updateStats() {
+                const questions = await Store.getAllWrongQuestions();
+                document.getElementById('stat-total').textContent = questions.length;
+                document.getElementById('stat-practiced').textContent = questions.filter(q => q.times > 0).length;
+                document.getElementById('stat-mastered').textContent = questions.filter(q => q.times >= 3 && (!q.lastPractice || Date.now() - new Date(q.lastPractice).getTime() < 7 * 24 * 60 * 60 * 1000)).length;
+            },
+
+            bindEvents() {
+                // Login tabs
+                document.querySelectorAll('.login-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+
+                        const isLogin = tab.dataset.tab === 'login';
+                        document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+                        document.getElementById('register-form').classList.toggle('hidden', isLogin);
+                    });
+                });
+
+                // Login form
+                document.getElementById('login-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const username = document.getElementById('login-username').value.trim();
+                    const password = document.getElementById('login-password').value;
+
+                    if (!username || !password) {
+                        this.showToast('请输入用户名和密码');
+                        return;
+                    }
+
+                    const user = await Store.getUser(username);
+                    if (!user || user.password !== password) {
+                        this.showToast('用户名或密码错误');
+                        return;
+                    }
+
+                    this.currentUser = username;
+                    localStorage.setItem('currentUser', username);
+                    this.showPage('home');
+                    this.showToast('登录成功');
+                });
+
+                // Register form
+                document.getElementById('register-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const username = document.getElementById('reg-username').value.trim();
+                    const password = document.getElementById('reg-password').value;
+                    const confirmPassword = document.getElementById('reg-password-confirm').value;
+
+                    if (!username || !password) {
+                        this.showToast('请输入用户名和密码');
+                        return;
+                    }
+
+                    if (password.length < 6) {
+                        this.showToast('密码至少6位');
+                        return;
+                    }
+
+                    if (password !== confirmPassword) {
+                        this.showToast('两次密码不一致');
+                        return;
+                    }
+
+                    const existingUser = await Store.getUser(username);
+                    if (existingUser) {
+                        this.showToast('用户名已存在');
+                        return;
+                    }
+
+                    await Store.addUser({ username, password });
+                    this.currentUser = username;
+                    localStorage.setItem('currentUser', username);
+                    this.showPage('home');
+                    this.showToast('注册成功');
+                });
+
+                // Logout
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    this.currentUser = null;
+                    localStorage.removeItem('currentUser');
+                    this.showPage('login');
+                    this.showToast('已退出登录');
+                });
+
+                // Menu cards
+                document.querySelectorAll('.menu-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const action = card.dataset.action;
+                        if (action === 'upload') this.showPage('upload');
+                        else if (action === 'wrong-list') this.showWrongList();
+                        else if (action === 'practice') this.startPractice();
+                        else if (action === 'add-wrong') this.showAddWrong();
+                    });
+                });
+
+                // Bottom nav
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const page = item.dataset.page;
+                        if (page === 'home') this.showPage('home');
+                        else if (page === 'wrong-list') this.showWrongList();
+                        else if (page === 'practice') this.startPractice();
+                        else if (page === 'upload') this.showPage('upload');
+                    });
+                });
+
+                // Back buttons
+                document.querySelectorAll('[data-back]').forEach(btn => {
+                    btn.addEventListener('click', () => this.showPage(btn.dataset.back));
+                });
+
+                // Subject select
+                document.querySelectorAll('.subject-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        btn.parentElement.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentSubject = btn.dataset.subject;
+                    });
+                });
+
+                // Upload area
+                document.getElementById('upload-area').addEventListener('click', () => {
+                    document.getElementById('file-input').click();
+                });
+
+                document.getElementById('file-input').addEventListener('change', (e) => {
+                    this.handleImageUpload(e, 'preview-image', 'start-review-btn');
+                });
+
+                // Start review
+                document.getElementById('start-review-btn').addEventListener('click', () => {
+                    this.startReview();
+                });
+
+                // Review question selection
+                document.getElementById('review-questions').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('option-btn')) {
+                        const questionIndex = parseInt(e.target.closest('.question-item').dataset.index);
+                        const optionIndex = parseInt(e.target.dataset.option);
+
+                        const question = this.reviewQuestions[questionIndex];
+                        question.userAnswer = optionIndex;
+
+                        const options = e.target.closest('.practice-options').querySelectorAll('.option-btn');
+                        options.forEach((opt, i) => {
+                            opt.classList.remove('selected');
+                            if (i === optionIndex) opt.classList.add('selected');
+                        });
+
+                        // Check if all questions answered
+                        const allAnswered = this.reviewQuestions.every(q => q.userAnswer !== undefined);
+                        document.getElementById('review-actions').classList.toggle('hidden', !allAnswered);
+                    }
+                });
+
+                // Submit review
+                document.getElementById('submit-review-btn').addEventListener('click', () => {
+                    this.submitReview();
+                });
+
+                // View wrong list button
+                document.getElementById('view-wrong-btn').addEventListener('click', () => {
+                    this.showWrongList();
+                });
+
+                // Filter tabs
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        this.currentFilter = tab.dataset.filter;
+                        this.renderWrongList();
+                    });
+                });
+
+                // Add wrong upload
+                document.getElementById('wrong-upload-area').addEventListener('click', () => {
+                    document.getElementById('wrong-file-input').click();
+                });
+
+                document.getElementById('wrong-file-input').addEventListener('change', (e) => {
+                    this.handleImageUpload(e, 'wrong-preview-image');
+                });
+
+                // Save wrong question
+                document.getElementById('save-wrong-btn').addEventListener('click', () => {
+                    this.saveWrongQuestion();
+                });
+
+                // Practice answer selection
+                document.getElementById('practice-card').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('option-btn') && !e.target.classList.contains('correct') && !e.target.classList.contains('wrong')) {
+                        this.selectPracticeAnswer(parseInt(e.target.dataset.option));
+                    }
+                });
+
+                // Next question
+                document.getElementById('next-question-btn').addEventListener('click', () => {
+                    this.nextPracticeQuestion();
+                });
+
+                // End practice
+                document.getElementById('end-practice-btn').addEventListener('click', () => {
+                    this.showPage('home');
+                    this.showToast('练习已结束');
+                });
+            },
+
+            handleImageUpload(e, previewId, btnId) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const preview = document.getElementById(previewId);
+                    preview.src = event.target.result;
+                    preview.classList.remove('hidden');
+
+                    if (btnId) {
+                        document.getElementById(btnId).disabled = false;
+                    }
+                };
+                reader.readAsDataURL(file);
+            },
+
+            startReview() {
+                // Generate sample questions for demo
+                // In real app, this would use OCR or manual input
+                const subjects = {
+                    '语文': ['下列词语中字形正确的是？', '下列句子中没有语病的是？', '对仗句“春风得意”对应的下一句是？'],
+                    '数学': ['计算：25 × 4 = ?', '已知 x² - 5x + 6 = 0，求 x 的值', '一个圆的半径为3cm，面积为多少？'],
+                    '英语': ['The weather ___ fine yesterday.', 'Which word means "快乐"？', 'Complete: She ___ (go) to school every day.'],
+                    '物理': ['物体在重力作用下的加速度约为？', '光的折射定律由谁发现？', '电压的单位是？'],
+                    '化学': ['水的化学式是？', '燃烧需要哪些条件？', '下列哪个是金属元素？'],
+                    '生物': ['细胞膜的主要成分是？', '光合作用的产物是？', '人类共有多少条染色体？']
+                };
+
+                const optionSets = [
+                    ['A. 春眠不觉晓', 'B. 春眠不晓', 'C. 春风不眠', 'D. 春日不晓'],
+                    ['A. 100', 'B. 96', 'C. 104', 'D. 88'],
+                    ['A. is', 'B. was', 'C. were', 'D. be'],
+                    ['A. 9.8 m/s²', 'B. 10 m/s²', 'C. 8.5 m/s²', 'D. 11 m/s²'],
+                    ['A. H₂O', 'B. CO₂', 'C. NaCl', 'D. O₂'],
+                    ['A. 蛋白质', 'B. 脂肪', 'C. 糖类', 'D. 维生素']
+                ];
+
+                const answers = [0, 1, 1, 0, 0, 0]; // Correct answers index
+
+                const questions = subjects[this.currentSubject];
+                this.reviewQuestions = questions.map((q, i) => ({
+                    id: this.generateId(),
+                    question: q,
+                    options: optionSets[i % optionSets.length],
+                    correctAnswer: answers[i % answers.length],
+                    userAnswer: undefined,
+                    imageUrl: null
+                }));
+
+                this.renderReviewQuestions();
+                this.showPage('review');
+            },
+
+            renderReviewQuestions() {
+                const container = document.getElementById('review-questions');
+                container.innerHTML = this.reviewQuestions.map((q, index) => `
+                    <div class="question-item" data-index="${index}">
+                        <div class="question-header">
+                            <span class="question-number">第 ${index + 1} 题</span>
+                            <span class="question-subject">${this.currentSubject}</span>
+                        </div>
+                        <div class="question-content">${q.question}</div>
+                        <div class="practice-options">
+                            ${q.options.map((opt, i) => `
+                                <button class="option-btn" data-option="${i}">${opt}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            async submitReview() {
+                let correctCount = 0;
+                const wrongQuestions = [];
+
+                this.reviewQuestions.forEach(q => {
+                    if (q.userAnswer === q.correctAnswer) {
+                        correctCount++;
+                    } else {
+                        wrongQuestions.push({
+                            id: this.generateId(),
+                            subject: this.currentSubject,
+                            question: q.question,
+                            answer: q.options[q.correctAnswer],
+                            options: q.options,
+                            userAnswer: q.options[q.userAnswer],
+                            source: 'paper',
+                            imageUrl: null,
+                            times: 0,
+                            lastPractice: null
+                        });
+                    }
+                });
+
+                // Save wrong questions
+                for (const wq of wrongQuestions) {
+                    await Store.addWrongQuestion(wq);
+                }
+
+                // Save paper
+                await Store.addPaper({
+                    id: this.generateId(),
+                    subject: this.currentSubject,
+                    date: new Date().toISOString(),
+                    score: correctCount,
+                    totalScore: this.reviewQuestions.length,
+                    wrongCount: wrongQuestions.length
+                });
+
+                // Show result
+                const total = this.reviewQuestions.length;
+                const score = Math.round((correctCount / total) * 100);
+                const degree = (score / 100) * 360;
+
+                document.getElementById('score-value').textContent = score;
+                document.getElementById('score-total').textContent = total;
+                document.getElementById('correct-count').textContent = correctCount;
+                document.getElementById('wrong-count').textContent = wrongQuestions.length;
+                document.getElementById('score-circle').style.background = `conic-gradient(${score >= 60 ? 'var(--success)' : 'var(--danger)'} ${degree}deg, var(--gray-200) ${degree}deg)`;
+
+                // Render wrong list in result
+                const wrongListEl = document.getElementById('wrong-list');
+                if (wrongQuestions.length > 0) {
+                    wrongListEl.innerHTML = wrongQuestions.map(wq => `
+                        <div class="question-item">
+                            <div class="question-content">${wq.question}</div>
+                            <div class="question-answer">
+                                <span class="answer-tag answer-wrong">你的答案: ${wq.userAnswer}</span>
+                                <span class="answer-tag answer-correct">正确答案: ${wq.answer}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    wrongListEl.innerHTML = '<p class="text-center" style="color: var(--success);">🎉 太棒了！全部答对！</p>';
+                }
+
+                this.showPage('result');
+            },
+
+            async showWrongList() {
+                const questions = await Store.getAllWrongQuestions();
+                this.allWrongQuestions = questions;
+                this.currentFilter = 'all';
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === 'all'));
+                this.renderWrongList();
+                this.showPage('wrong-list');
+            },
+
+            renderWrongList() {
+                const container = document.getElementById('wrong-questions-list');
+                let questions = this.allWrongQuestions || [];
+
+                if (this.currentFilter !== 'all') {
+                    questions = questions.filter(q => q.subject === this.currentFilter);
+                }
+
+                if (questions.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>暂无错题</p>
+                            <p style="font-size: 13px; margin-top: 8px;">去上传试卷或手动添加错题吧</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = questions.map(q => `
+                    <div class="question-item" data-id="${q.id}">
+                        <div class="question-header">
+                            <span class="question-number">错题</span>
+                            <span class="question-subject">${q.subject} · 已练习${q.times}次</span>
+                        </div>
+                        <div class="question-content">${q.question}</div>
+                        <div class="question-answer">
+                            <span class="answer-tag answer-correct">正确答案: ${q.answer}</span>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            showAddWrong() {
+                document.getElementById('wrong-preview-image').classList.add('hidden');
+                document.getElementById('new-question-text').value = '';
+                document.getElementById('new-question-answer').value = '';
+                this.showPage('add-wrong');
+            },
+
+            async saveWrongQuestion() {
+                const questionText = document.getElementById('new-question-text').value.trim();
+                const answer = document.getElementById('new-question-answer').value.trim();
+                const imageUrl = document.getElementById('wrong-preview-image').src;
+
+                if (!questionText && imageUrl === window.location.href) {
+                    this.showToast('请输入题目内容或上传图片');
+                    return;
+                }
+
+                if (!answer) {
+                    this.showToast('请输入正确答案');
+                    return;
+                }
+
+                const wrongQuestion = {
+                    id: this.generateId(),
+                    subject: this.currentSubject,
+                    question: questionText || '（见图片）',
+                    answer: answer,
+                    userAnswer: '',
+                    source: 'manual',
+                    imageUrl: imageUrl !== window.location.href ? imageUrl : null,
+                    times: 0,
+                    lastPractice: null
+                };
+
+                await Store.addWrongQuestion(wrongQuestion);
+                this.showToast('错题已保存');
+                this.showPage('home');
+            },
+
+            async startPractice() {
+                const questions = await Store.getAllWrongQuestions();
+
+                if (questions.length === 0) {
+                    this.showToast('暂无错题可练习');
+                    return;
+                }
+
+                // Shuffle and pick 10 questions
+                const shuffled = questions.sort(() => Math.random() - 0.5);
+                this.practiceQuestions = shuffled.slice(0, 10);
+                this.currentPracticeIndex = 0;
+                this.selectedAnswer = null;
+
+                this.renderPracticeQuestion();
+                this.showPage('practice');
+            },
+
+            renderPracticeQuestion() {
+                const q = this.practiceQuestions[this.currentPracticeIndex];
+                const progress = this.currentPracticeIndex + 1;
+                const total = this.practiceQuestions.length;
+
+                document.getElementById('practice-progress').textContent = `${progress}/${total}`;
+                document.getElementById('progress-fill').style.width = `${(progress / total) * 100}%`;
+
+                const contentEl = document.getElementById('practice-question-content');
+                let html = `<div class="practice-question">${q.question}</div>`;
+                if (q.imageUrl) {
+                    html += `<img src="${q.imageUrl}" class="practice-image">`;
+                }
+                contentEl.innerHTML = html;
+
+                const optionsEl = document.getElementById('practice-options');
+                optionsEl.innerHTML = q.options.map((opt, i) => `
+                    <button class="option-btn" data-option="${i}">${opt}</button>
+                `).join('');
+
+                document.getElementById('practice-feedback').classList.add('hidden');
+                document.getElementById('next-question-btn').disabled = true;
+            },
+
+            async selectPracticeAnswer(optionIndex) {
+                const q = this.practiceQuestions[this.currentPracticeIndex];
+                const isCorrect = optionIndex === q.correctAnswer;
+
+                // Update option styles
+                const options = document.querySelectorAll('#practice-options .option-btn');
+                options.forEach((opt, i) => {
+                    if (i === q.correctAnswer) {
+                        opt.classList.add('correct');
+                    } else if (i === optionIndex && !isCorrect) {
+                        opt.classList.add('wrong');
+                    }
+                });
+
+                // Show feedback
+                const feedbackEl = document.getElementById('practice-feedback');
+                feedbackEl.classList.remove('hidden', 'result-correct', 'result-wrong');
+                feedbackEl.classList.add(isCorrect ? 'result-correct' : 'result-wrong');
+                feedbackEl.textContent = isCorrect ? '✓ 回答正确！' : `✗ 回答错误，正确答案是 ${q.options[q.correctAnswer]}`;
+
+                document.getElementById('next-question-btn').disabled = false;
+                document.getElementById('next-question-btn').textContent =
+                    this.currentPracticeIndex < this.practiceQuestions.length - 1 ? '下一题' : '完成练习';
+
+                // Update practice times
+                q.times = (q.times || 0) + 1;
+                q.lastPractice = new Date().toISOString();
+                await Store.updateWrongQuestion(q);
+            },
+
+            async nextPracticeQuestion() {
+                if (this.currentPracticeIndex < this.practiceQuestions.length - 1) {
+                    this.currentPracticeIndex++;
+                    this.renderPracticeQuestion();
+                } else {
+                    // Practice complete
+                    this.showPage('home');
+                    this.showToast('练习完成！');
+                }
+            }
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
+
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {
+                    // SW registration failed, app still works
+                });
+            });
+        }
+    </script>
+</body>
+</html>
