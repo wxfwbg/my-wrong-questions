@@ -1260,6 +1260,97 @@
                 }
             },
 
+            // ========== 用户管理（云端）==========
+            async cloudRegister(username, password) {
+                if (!this.connected) return { success: false, error: '云端未连接' };
+                try {
+                    // 先检查用户名是否已存在
+                    const existing = await this.cloudGetUser(username);
+                    if (existing) {
+                        return { success: false, error: '用户名已存在' };
+                    }
+
+                    // 写入数据库
+                    const result = await this.httpRequest('users', 'add', {
+                        data: {
+                            username: username,
+                            password: password,
+                            created_at: new Date().toISOString()
+                        }
+                    });
+                    console.log('云端注册成功:', result);
+                    return { success: true };
+                } catch (err) {
+                    console.error('云端注册失败:', err);
+                    return { success: false, error: '注册失败，请重试' };
+                }
+            },
+
+            async cloudLogin(username, password) {
+                if (!this.connected) return { success: false, error: '云端未连接' };
+                try {
+                    const user = await this.cloudGetUser(username);
+                    if (!user) {
+                        return { success: false, error: '用户不存在，请先注册' };
+                    }
+                    if (user.password !== password) {
+                        return { success: false, error: '密码错误' };
+                    }
+                    return { success: true };
+                } catch (err) {
+                    console.error('云端登录失败:', err);
+                    return { success: false, error: '登录失败，请重试' };
+                }
+            },
+
+            async cloudGetUser(username) {
+                try {
+                    const result = await this.httpRequest('users', 'query', {
+                        query: {
+                            where: { username: username },
+                            limit: 1
+                        }
+                    });
+                    if (result.data && result.data.length > 0) {
+                        return result.data[0];
+                    }
+                    return null;
+                } catch (err) {
+                    console.error('查询用户失败:', err);
+                    return null;
+                }
+            },
+
+            // HTTP API 请求
+            async httpRequest(collection, action, payload) {
+                const baseUrl = 'https://tcb-api.tencentcloudapi.com/v2/gateway';
+                const timestamp = Math.floor(Date.now() / 1000);
+                const nonce = Math.random().toString(36).substring(2, 10);
+
+                const body = {
+                    env: CLOUD_CONFIG.env,
+                    action: 'database.' + action,
+                    requestData: payload,
+                    timestamp: timestamp,
+                    nonce: nonce
+                };
+
+                const response = await fetch(baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CloudBase-Authorization': CLOUD_CONFIG.secretKey
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const result = await response.json();
+                if (result.code) {
+                    throw new Error(result.message || 'API请求失败');
+                }
+                return result.responseData || result;
+            },
+
             getSyncStatus() {
                 if (!this.connected) return 'offline';
                 if (this.syncPending) return 'syncing';
@@ -1594,12 +1685,22 @@
                         return;
                     }
 
-                    // 验证用户
-                    const result = UserStore.verifyUser(username, password);
+                    // 先检查本地
+                    const localResult = UserStore.verifyUser(username, password);
+                    if (!localResult.success && localResult.error !== '用户不存在，请先注册') {
+                        this.showToast(localResult.error);
+                        return;
+                    }
+
+                    // 尝试云端验证
+                    const result = await CloudStore.cloudLogin(username, password);
                     if (!result.success) {
                         this.showToast(result.error);
                         return;
                     }
+
+                    // 同步更新本地用户数据
+                    UserStore.addUser(username, password);
 
                     this.currentUser = username;
                     localStorage.setItem('currentUser', username);
@@ -1628,14 +1729,22 @@
                         return;
                     }
 
-                    // 保存用户
-                    const result = UserStore.addUser(username, password);
+                    // 保存到云端
+                    this.showToast('正在注册...');
+                    const result = await CloudStore.cloudRegister(username, password);
                     if (!result.success) {
                         this.showToast(result.error);
                         return;
                     }
 
+                    // 同时保存到本地
+                    UserStore.addUser(username, password);
+
                     this.currentUser = username;
+                    localStorage.setItem('currentUser', username);
+                    this.showPage('home');
+                    this.showToast('注册成功');
+                });
                     localStorage.setItem('currentUser', username);
                     this.showPage('home');
                     this.showToast('注册成功');
