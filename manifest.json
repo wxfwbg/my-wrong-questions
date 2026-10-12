@@ -2,7 +2,7 @@
   "name": "我的错题本",
   "short_name": "错题本",
   "description": "拍照录入试卷，自动批改，随时刷题",
-  "start_url": "/index.html",
+  "start_url": "/my-wrong-questions/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3B82F6",
